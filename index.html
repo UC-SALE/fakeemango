@@ -2,24 +2,100 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
 <style>
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background: black;
+  overflow: hidden;
 }
 
-img {
-  width: 100%;
-  height: 100vh;
-  object-fit: cover; /* Дэлгэцийг дүүргэнэ */
+/* Background */
+body {
+  background: url("zurag.png") no-repeat center center;
+  background-size: cover;
+}
+
+/* Dark overlay */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Popup box */
+#popupBox {
+  background: white;
+  padding: 20px 30px;
+  border-radius: 20px;
+  font-size: 18px;
+}
+
+/* Draggable image */
+#pop {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 150px;
+  touch-action: none;
 }
 </style>
 </head>
 <body>
 
-<img src="zurag.png">
+<img src="pop.png" id="pop">
+
+<div id="overlay">
+  <div id="popupBox">
+    Popup гарч ирлээ ✨
+  </div>
+</div>
+
+<script>
+const pop = document.getElementById("pop");
+const overlay = document.getElementById("overlay");
+
+let startY = 0;
+let currentY = 0;
+let dragging = false;
+
+pop.addEventListener("touchstart", e => {
+  dragging = true;
+  startY = e.touches[0].clientY;
+});
+
+pop.addEventListener("touchmove", e => {
+  if (!dragging) return;
+  currentY = e.touches[0].clientY - startY;
+  pop.style.transform = `translate(-50%, calc(-50% + ${currentY}px))`;
+});
+
+pop.addEventListener("touchend", () => {
+  dragging = false;
+
+  if (currentY > 150) {  // доош шидсэн бол
+    pop.style.display = "none";
+    overlay.style.display = "flex";
+  } else {
+    pop.style.transform = "translate(-50%, -50%)";
+  }
+
+  currentY = 0;
+});
+
+overlay.addEventListener("click", () => {
+  overlay.style.display = "none";
+  pop.style.display = "block";
+  pop.style.transform = "translate(-50%, -50%)";
+});
+</script>
 
 </body>
 </html>
