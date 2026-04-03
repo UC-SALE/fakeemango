@@ -1,85 +1,118 @@
 <!DOCTYPE html>
-<html>
+<html lang="mn">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Popup Site</title>
 
 <style>
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  overflow: hidden;
-  background: url("zurag.png") no-repeat center center;
-  background-size: cover;
+html,body{
+    margin:0;
+    padding:0;
+    height:100%;
+    overflow:hidden;
+    font-family:sans-serif;
 }
 
-/* Dark background when popup active */
-#overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* Background */
+.background{
+    position:fixed;
+    inset:0;
+    background:url("zurag.png") no-repeat center center;
+    background-size:cover;
 }
 
-/* Popup image */
-#popup {
-  width: 200px;
-  touch-action: none;
-  transition: transform 0.3s ease;
+/* Dark overlay */
+.overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    display:flex;
+    justify-content:center;
+    align-items:flex-end;
+    opacity:0;
+    pointer-events:none;
+    transition:0.3s;
+}
+
+.overlay.active{
+    opacity:1;
+    pointer-events:all;
+}
+
+/* Popup */
+.popup{
+    width:90%;
+    max-width:400px;
+    margin-bottom:40px;
+    transition:transform 0.3s ease;
+    touch-action:none;
+}
+
+/* Open button */
+.openBtn{
+    position:absolute;
+    top:20px;
+    left:20px;
+    padding:10px 20px;
+    border:none;
+    background:black;
+    color:white;
+    border-radius:8px;
 }
 </style>
 </head>
 <body>
 
-<div id="overlay">
-  <img src="pop.png" id="popup">
+<div class="background"></div>
+
+<div class="overlay" id="overlay">
+    <img src="pop.png" class="popup" id="popup">
 </div>
 
+<button class="openBtn" onclick="openPopup()">OPEN</button>
+
 <script>
-const popup = document.getElementById("popup");
 const overlay = document.getElementById("overlay");
+const popup = document.getElementById("popup");
 
 let startY = 0;
-let moveY = 0;
+let currentY = 0;
 let dragging = false;
 
-popup.addEventListener("touchstart", e => {
-  dragging = true;
-  startY = e.touches[0].clientY;
-  popup.style.transition = "none";
-});
-
-popup.addEventListener("touchmove", e => {
-  if (!dragging) return;
-  moveY = e.touches[0].clientY - startY;
-  if (moveY > 0) {
-    popup.style.transform = `translateY(${moveY}px)`;
-  }
-});
-
-popup.addEventListener("touchend", () => {
-  dragging = false;
-
-  if (moveY > 150) { 
-    overlay.style.display = "none";  // доош шидвэл алга болно
-  } else {
-    popup.style.transition = "transform 0.3s ease";
+function openPopup(){
+    overlay.classList.add("active");
     popup.style.transform = "translateY(0)";
-  }
+}
 
-  moveY = 0;
+popup.addEventListener("touchstart",(e)=>{
+    startY = e.touches[0].clientY;
+    dragging = true;
 });
 
-/* Background дарвал popup дахин гарч ирнэ */
-document.body.addEventListener("click", () => {
-  if (overlay.style.display === "none") {
-    overlay.style.display = "flex";
-    popup.style.transform = "translateY(0)";
-  }
+popup.addEventListener("touchmove",(e)=>{
+    if(!dragging) return;
+    currentY = e.touches[0].clientY - startY;
+
+    if(currentY > 0){ // зөвхөн доош
+        popup.style.transform = `translateY(${currentY}px)`;
+    }
+});
+
+popup.addEventListener("touchend",()=>{
+    dragging = false;
+
+    if(currentY > 120){
+        popup.style.transform = "translateY(800px)";
+        setTimeout(()=>{
+            overlay.classList.remove("active");
+            popup.style.transform = "translateY(0)";
+        },300);
+    } else {
+        popup.style.transform = "translateY(0)";
+    }
+
+    currentY = 0;
 });
 </script>
 
