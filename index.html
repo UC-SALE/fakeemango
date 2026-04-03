@@ -11,89 +11,75 @@ html, body {
   padding: 0;
   height: 100%;
   overflow: hidden;
-}
-
-/* Background */
-body {
   background: url("zurag.png") no-repeat center center;
   background-size: cover;
 }
 
-/* Dark overlay */
+/* Dark background when popup active */
 #overlay {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.6);
-  display: none;
+  display: flex;
   justify-content: center;
   align-items: center;
 }
 
-/* Popup box */
-#popupBox {
-  background: white;
-  padding: 20px 30px;
-  border-radius: 20px;
-  font-size: 18px;
-}
-
-/* Draggable image */
-#pop {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 150px;
+/* Popup image */
+#popup {
+  width: 200px;
   touch-action: none;
+  transition: transform 0.3s ease;
 }
 </style>
 </head>
 <body>
 
-<img src="pop.png" id="pop">
-
 <div id="overlay">
-  <div id="popupBox">
-    Popup гарч ирлээ ✨
-  </div>
+  <img src="pop.png" id="popup">
 </div>
 
 <script>
-const pop = document.getElementById("pop");
+const popup = document.getElementById("popup");
 const overlay = document.getElementById("overlay");
 
 let startY = 0;
-let currentY = 0;
+let moveY = 0;
 let dragging = false;
 
-pop.addEventListener("touchstart", e => {
+popup.addEventListener("touchstart", e => {
   dragging = true;
   startY = e.touches[0].clientY;
+  popup.style.transition = "none";
 });
 
-pop.addEventListener("touchmove", e => {
+popup.addEventListener("touchmove", e => {
   if (!dragging) return;
-  currentY = e.touches[0].clientY - startY;
-  pop.style.transform = `translate(-50%, calc(-50% + ${currentY}px))`;
+  moveY = e.touches[0].clientY - startY;
+  if (moveY > 0) {
+    popup.style.transform = `translateY(${moveY}px)`;
+  }
 });
 
-pop.addEventListener("touchend", () => {
+popup.addEventListener("touchend", () => {
   dragging = false;
 
-  if (currentY > 150) {  // доош шидсэн бол
-    pop.style.display = "none";
-    overlay.style.display = "flex";
+  if (moveY > 150) { 
+    overlay.style.display = "none";  // доош шидвэл алга болно
   } else {
-    pop.style.transform = "translate(-50%, -50%)";
+    popup.style.transition = "transform 0.3s ease";
+    popup.style.transform = "translateY(0)";
   }
 
-  currentY = 0;
+  moveY = 0;
 });
 
-overlay.addEventListener("click", () => {
-  overlay.style.display = "none";
-  pop.style.display = "block";
-  pop.style.transform = "translate(-50%, -50%)";
+/* Background дарвал popup дахин гарч ирнэ */
+document.body.addEventListener("click", () => {
+  if (overlay.style.display === "none") {
+    overlay.style.display = "flex";
+    popup.style.transform = "translateY(0)";
+  }
 });
 </script>
 
