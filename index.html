@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Popup Split Control</title>
-
 <style>
 html,body{
     margin:0;
@@ -47,7 +46,7 @@ html,body{
 .popup{
     position:absolute;
     inset:0;
-    transition:transform 0.3s ease;
+    transition:transform 0.25s cubic-bezier(.22,.61,.36,1);
     touch-action:none;
 }
 
@@ -141,10 +140,8 @@ popup.addEventListener("click",(e)=>{
     const middle = window.innerHeight / 2;
 
     if(clickY < middle){
-        // Дундаас дээш → хаана
         closePopup();
     } else {
-        // Дундаас доош → flip
         flipCard.classList.toggle("flipped");
     }
 });
@@ -157,7 +154,7 @@ function closePopup(){
     },300);
 }
 
-/* === DRAG TO CLOSE === */
+/* === DRAG TO CLOSE (smooth & elastic) === */
 popup.addEventListener("touchstart",(e)=>{
     startY = e.touches[0].clientY;
     dragging = true;
@@ -165,9 +162,15 @@ popup.addEventListener("touchstart",(e)=>{
 
 popup.addEventListener("touchmove",(e)=>{
     if(!dragging) return;
-    currentY = e.touches[0].clientY - startY;
 
-    if(currentY > 0){
+    const move = e.touches[0].clientY - startY;
+
+    if(move > 0){
+        // Хөнгөн drag
+        const speedMultiplier = 1.2;
+        const elastic = move * 0.15;
+        currentY = (move * speedMultiplier) - elastic;
+
         popup.style.transform = `translateY(${currentY}px)`;
     }
 });
