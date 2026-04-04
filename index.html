@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fullscreen Popup Flip</title>
+<title>Popup Split Control</title>
 
 <style>
 html,body{
@@ -13,7 +13,6 @@ html,body{
     overflow:hidden;
 }
 
-/* Background */
 .background{
     position:fixed;
     inset:0;
@@ -21,7 +20,6 @@ html,body{
     background-size:cover;
 }
 
-/* Invisible middle button */
 .middleBtn{
     position:absolute;
     top:50%;
@@ -32,7 +30,6 @@ html,body{
     background:transparent;
 }
 
-/* Dark overlay */
 .overlay{
     position:fixed;
     inset:0;
@@ -47,7 +44,6 @@ html,body{
     pointer-events:all;
 }
 
-/* Popup */
 .popup{
     position:absolute;
     inset:0;
@@ -55,7 +51,6 @@ html,body{
     touch-action:none;
 }
 
-/* pop.png background */
 .popBg{
     position:absolute;
     inset:0;
@@ -64,12 +59,10 @@ html,body{
     object-fit:cover;
 }
 
-/* FULLSCREEN FLIP */
+/* Fullscreen Flip */
 .flip-card{
     position:absolute;
     inset:0;
-    width:100%;
-    height:100%;
     perspective:1000px;
 }
 
@@ -89,8 +82,6 @@ html,body{
 .flip-back{
     position:absolute;
     inset:0;
-    width:100%;
-    height:100%;
     backface-visibility:hidden;
 }
 
@@ -113,11 +104,8 @@ html,body{
 
 <div class="overlay" id="overlay">
     <div class="popup" id="popup">
-        
-        <!-- pop background -->
         <img src="pop.png" class="popBg">
 
-        <!-- FULLSCREEN flip -->
         <div class="flip-card">
             <div class="flip-inner" id="flipCard">
                 <div class="flip-front">
@@ -141,19 +129,35 @@ let startY = 0;
 let currentY = 0;
 let dragging = false;
 
-/* Open popup */
 function openPopup(){
     overlay.classList.add("active");
     popup.style.transform = "translateY(0)";
+    flipCard.classList.remove("flipped");
 }
 
-/* Flip */
-flipCard.addEventListener("click",(e)=>{
-    e.stopPropagation();
-    flipCard.classList.toggle("flipped");
+/* === TAP CONTROL SPLIT === */
+popup.addEventListener("click",(e)=>{
+    const clickY = e.clientY;
+    const middle = window.innerHeight / 2;
+
+    if(clickY < middle){
+        // Дундаас дээш → хаана
+        closePopup();
+    } else {
+        // Дундаас доош → flip
+        flipCard.classList.toggle("flipped");
+    }
 });
 
-/* Drag to close */
+function closePopup(){
+    popup.style.transform = "translateY(100%)";
+    setTimeout(()=>{
+        overlay.classList.remove("active");
+        popup.style.transform = "translateY(0)";
+    },300);
+}
+
+/* === DRAG TO CLOSE === */
 popup.addEventListener("touchstart",(e)=>{
     startY = e.touches[0].clientY;
     dragging = true;
@@ -172,11 +176,7 @@ popup.addEventListener("touchend",()=>{
     dragging = false;
 
     if(currentY > 150){
-        popup.style.transform = "translateY(100%)";
-        setTimeout(()=>{
-            overlay.classList.remove("active");
-            popup.style.transform = "translateY(0)";
-        },300);
+        closePopup();
     } else {
         popup.style.transform = "translateY(0)";
     }
