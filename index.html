@@ -1,112 +1,99 @@
 <!DOCTYPE html>
 <html lang="mn">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Popup Split Control</title>
 
 <style>
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  overflow: hidden;
+html,body{
+    margin:0;
+    padding:0;
+    height:100%;
+    overflow:hidden;
 }
 
-.background {
-  position: fixed;
-  inset: 0;
-  background: url("zurag.png") no-repeat center center;
-  background-size: cover;
+.background{
+    position:fixed;
+    inset:0;
+    background:url("zurag.png") no-repeat center center;
+    background-size:cover;
 }
 
-.middleBtn {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 200px;
-  height: 200px;
-  background: transparent;
-  cursor: pointer;
-  z-index: 10;
+.middleBtn{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:200px;
+    height:200px;
+    background:transparent;
 }
 
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  opacity: 0;
-  pointer-events: none;
-  transition: 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 20;
+.overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    opacity:0;
+    pointer-events:none;
+    transition:0.3s;
 }
 
-.overlay.active {
-  opacity: 1;
-  pointer-events: all;
+.overlay.active{
+    opacity:1;
+    pointer-events:all;
 }
 
-.popup {
-  position: absolute;
-  width: 300px;
-  height: 200px;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: grab;
-  will-change: transform;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  user-select: none;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-  /* For smooth dragging */
-  transition: box-shadow 0.2s;
+.popup{
+    position:absolute;
+    inset:0;
+    transition:transform 0.3s ease;
+    touch-action:none;
 }
 
-.popup:active {
-  cursor: grabbing;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+.popBg{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
 }
 
-.popBg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+/* Fullscreen Flip */
+.flip-card{
+    position:absolute;
+    inset:0;
+    perspective:1000px;
 }
 
-/* Fullscreen Flip (not used here, but kept from original) */
-.flip-card {
-  position: absolute;
-  inset: 0;
-  perspective: 1000px;
+.flip-inner{
+    width:100%;
+    height:100%;
+    position:relative;
+    transition:transform 0.6s;
+    transform-style:preserve-3d;
 }
 
-.flip-inner {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  transition: transform 0.6s;
-  transform-style: preserve-3d;
-}
-
-.flip-inner.flipped {
-  transform: rotateY(180deg);
+.flip-inner.flipped{
+    transform:rotateY(180deg);
 }
 
 .flip-front,
-.flip-back {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
+.flip-back{
+    position:absolute;
+    inset:0;
+    backface-visibility:hidden;
 }
 
-.flip-back {
-  transform: rotateY(180deg);
+.flip-front img,
+.flip-back img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.flip-back{
+    transform:rotateY(180deg);
 }
 </style>
 </head>
@@ -116,58 +103,85 @@ html, body {
 <div class="middleBtn" onclick="openPopup()"></div>
 
 <div class="overlay" id="overlay">
-  <div class="popup" id="popup">
-    <img src="pop.png" class="popBg" />
-  </div>
+    <div class="popup" id="popup">
+        <img src="pop.png" class="popBg">
+
+        <div class="flip-card">
+            <div class="flip-inner" id="flipCard">
+                <div class="flip-front">
+                    <img src="1face.png">
+                </div>
+                <div class="flip-back">
+                    <img src="2face.png">
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 <script>
-const overlay = document.getElementById('overlay');
-const popup = document.getElementById('popup');
+const overlay = document.getElementById("overlay");
+const popup = document.getElementById("popup");
+const flipCard = document.getElementById("flipCard");
 
-function openPopup() {
-  overlay.classList.add('active');
+let startY = 0;
+let currentY = 0;
+let dragging = false;
+
+function openPopup(){
+    overlay.classList.add("active");
+    popup.style.transform = "translateY(0)";
+    flipCard.classList.remove("flipped");
 }
 
-// Close popup when clicking outside (optional)
-overlay.addEventListener('click', (e) => {
-  if (e.target === overlay) {
-    overlay.classList.remove('active');
-  }
+/* === TAP CONTROL SPLIT === */
+popup.addEventListener("click",(e)=>{
+    const clickY = e.clientY;
+    const middle = window.innerHeight / 2;
+
+    if(clickY < middle){
+        // Дундаас дээш → хаана
+        closePopup();
+    } else {
+        // Дундаас доош → flip
+        flipCard.classList.toggle("flipped");
+    }
 });
 
-// Drag functionality
-let isDragging = false;
-let startX = 0;
-let startY = 0;
-let currentX = 0;
-let currentY = 0;
-let offsetX = 0;
-let offsetY = 0;
+function closePopup(){
+    popup.style.transform = "translateY(100%)";
+    setTimeout(()=>{
+        overlay.classList.remove("active");
+        popup.style.transform = "translateY(0)";
+    },300);
+}
 
-popup.addEventListener('mousedown', (e) => {
-  isDragging = true;
-  startX = e.clientX;
-  startY = e.clientY;
-  popup.style.transition = 'none'; // Disable transition during drag
+/* === DRAG TO CLOSE === */
+popup.addEventListener("touchstart",(e)=>{
+    startY = e.touches[0].clientY;
+    dragging = true;
 });
 
-document.addEventListener('mouseup', () => {
-  if (isDragging) {
-    isDragging = false;
-    offsetX = currentX;
-    offsetY = currentY;
-    popup.style.transition = 'box-shadow 0.2s';
-  }
+popup.addEventListener("touchmove",(e)=>{
+    if(!dragging) return;
+    currentY = e.touches[0].clientY - startY;
+
+    if(currentY > 0){
+        popup.style.transform = `translateY(${currentY}px)`;
+    }
 });
 
-document.addEventListener('mousemove', (e) => {
-  if (isDragging) {
-    currentX = offsetX + e.clientX - startX;
-    currentY = offsetY + e.clientY - startY;
-    // Use translate3d for hardware acceleration
-    popup.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
-  }
+popup.addEventListener("touchend",()=>{
+    dragging = false;
+
+    if(currentY > 150){
+        closePopup();
+    } else {
+        popup.style.transform = "translateY(0)";
+    }
+
+    currentY = 0;
 });
 </script>
 
